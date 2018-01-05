@@ -1,0 +1,3 @@
+/home/ubuntu/machine-learning/imageServer0/build/CMakeFiles/edit_cache.dir
+/home/ubuntu/machine-learning/imageServer0/build/CMakeFiles/rebuild_cache.dir
+/home/ubuntu/machine-learning/imageServer0/build/CMakeFiles/server.dir

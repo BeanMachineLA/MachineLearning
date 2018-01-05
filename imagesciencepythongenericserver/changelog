@@ -1,0 +1,93 @@
+#Change Log
+All changes to pythongenericserver will be documented in this file. 
+
+
+## - 2016-5-27
+- In _init_paths.py
+	* added variable detectorversion = 1.000  vs. hard coding
+	* added root path variable to avoid specifying in multiple files
+	* added argparse statements to centralize location
+	* added "topoutput" argparse such that top number of outputs from net can be 
+	  specified on command line vs. hard coding
+	  	[ex. python webapp.py --port 5000 --model murals --type CNN --topoutput 3]
+	* added deleteQmessage variable for pullRequest functionality
+
+- In webapp.py
+	* added checks for s:// , www. , s: to redirect to http://
+	* added timeout by setting timeout = 10 for response
+	* removed argparse statements
+	* added import _init_paths.py to remove explicit path for caffe-fast-rcnn/python
+	* for pullrequest
+			- added statements from not pull request to yield same functionality
+			- avoided "working outside of request context" error by adding 
+				with app.test_request_context():
+			- added raise statement to exit pullrequest while loop 
+			- post message using JSON 
+			- post message with header for application/json (needs to be checked)
+			- added if statement to post message to endpoint and delete from queue only if url is
+				read correctly w/ detection present or not
+			- added if statement to wait for message if queue is empty vs. breaking out
+			- added if statement to enable SQS queue testing whether destinationUrl is specified or not
+			- added threading.lock to prevent race condition of fetching multiple SQS message 
+	* added multiple thread to run Flask server to serve multiple clients simultaneously
+	* enable verify SSL certificate
+	* added ability to read from local file
+
+- In modelClass.py 
+	* suppressed FutureWarning errors
+	* turn on gpu mode for caffe in run_rcnnFaster
+	* rcnn for porn model 
+
+- In getSQSMessage.py
+	* removed argparse statements / import webapp.py 
+
+- In utility.py 
+	* removed argparse statements / import webapp.py
+	* json reformatted to adhere to convention set by LogoServer
+		- confidence reported between 0-100
+		- current json output is standardized; however, if mural_streetview is detected, json will be
+		  outputted with brandID 1823 
+		- from version1.0.0 reversed ImgH and ImgW 
+	* moved all instances in which a json is created to call create_json() vs. building in different locations
+		- heartbeat response - logs to heartbeat.log
+		- couldn't open url - logs to results.log
+		- image is size 0/NULL - no logs will be written
+		- detections present - logs to results.log
+		- if no detections are present - logs to result.log 
+	* return None if get_image function is unable to get image vs. JSON (previously was written with redundant code)
+	* updated json to newest convention
+	* updated json to handle both RCNN and CNN 
+
+- In preprocess.py
+	* added ability for json_preprocessor (send an image to a different model and use the ROI from JSON as preprocessing step)
+	
+
+###- In convertmean.py
+###	* added import _init_paths.py to remove explicit path for caffe-fast-rcnn/python
+
+- Added logging functionality
+	*logging.conf is the configuration file for logger module
+	*results.log & heartbeat.log is current set to log in current directory; 
+		can be changed to: 
+				/var/log/vertex/pythongenericserver/results.log &
+				/var/log/vertex/pythongenericserver/heartbeat.log
+
+
+Notes: Models available
+- Models for GumFace: 20160406-100928-9885_epoch_25.0.mural.tar.gz
+- Models for Murals: 20160412-085835-5ee8_epoch_13.0.mural.tar.gz
+
+TODO:
+1) check if vertex mode satisfies all cases 
+2) check if post has appropriate headers; couldn't see from requestb.in
+3) should heartbeat be present for vertex mode? 
+4) why is body empty in getSQSmessage sometimes? why would it go into that loop?
+
+NOTE:
+- this is only tested for -CNN , need to update for others. 
+
+*To test delete message function
+- AWS SQS
+ --> right click, select purge queue
+ --> refresh page; right click, send message
+      {"imageUrl" : "http://www.celebitchy.com/wp-content/uploads/2011/07/wenn3436540.jpg" , "destinationUrl" : "http://requestb.in/129veyc1" }
